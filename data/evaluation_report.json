@@ -1,0 +1,14 @@
+{
+  "num_frames_evaluated": 6,
+  "total_ground_truth": 2,
+  "true_positives": 2,
+  "false_positives": 3,
+  "false_negatives": 0,
+  "precision": 0.4,
+  "recall": 1.0,
+  "f1_score": 0.5714285714285715,
+  "fp_rate": 0.6,
+  "fp_per_frame": 0.5,
+  "mean_latency_ms": 125.60153007507324,
+  "fps": 7.961686449219929
+}

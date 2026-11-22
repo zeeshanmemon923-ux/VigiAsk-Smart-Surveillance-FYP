@@ -1,0 +1,29 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Environment variables and credentials
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Node.js
+node_modules/
+
+# Large AI models
+*.pt
+*.pth
+*.onnx
+
+# CCTV recordings
+*.mp4
+*.avi
+
+# Editor files
+.vscode/

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart CCTV Console</title>
+<style>
+:root{--bg:#0b1220;--panel:#121b2e;--line:#22304d;--txt:#e6ecf8;--mut:#8a98b5;--acc:#3b82f6;--red:#ef4444;--org:#f59e0b;--grn:#22c55e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,Segoe UI,sans-serif}
+header{display:flex;align-items:center;gap:24px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:16px;margin:0}nav{display:flex;gap:4px}
+nav button{background:none;border:0;color:var(--mut);padding:8px 14px;border-radius:6px;cursor:pointer;font:inherit}
+nav button.on{background:var(--acc);color:#fff}
+main{padding:20px;max-width:1400px;margin:auto}.tab{display:none}.tab.on{display:block}
+.grid{display:grid;gap:16px}.live{grid-template-columns:minmax(0,7fr) minmax(280px,3fr)}
+@media(max-width:900px){.live{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.card h3{margin:0 0 10px;font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+select,input,button.b{background:#0e1626;color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:inherit}
+input{flex:1;min-width:200px}button.b{cursor:pointer}button.b.go{background:var(--acc);border-color:var(--acc)}button.b.stop{background:var(--red);border-color:var(--red)}
+#video{width:100%;aspect-ratio:16/9;background:#000;border-radius:8px;object-fit:contain;display:block}
+#status{margin-top:8px;color:var(--mut);font-size:12px}#status.err{color:var(--red)}
+.feed{max-height:560px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+.ev{display:flex;gap:10px;padding:8px;border-radius:8px;border-left:4px solid var(--org);background:#0e1626;cursor:pointer}
+.ev.suspicious_behavior,.ev.weapon_detected,.ev.restricted_area_intrusion,.ev.high_energy_interaction{border-color:var(--red)}
+.ev img{width:84px;height:56px;object-fit:cover;border-radius:4px;background:#000}
+.ev b{display:block;font-size:13px}.ev small{color:var(--mut)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat span{font-size:24px;font-weight:700;display:block}.stat small{color:var(--mut)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chip{background:#1b2a47;border-radius:99px;padding:3px 10px;font-size:12px;cursor:pointer}
+.res{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:12px}
+.res .ev{flex-direction:column;border-left:0;border-top:4px solid var(--org)}.res .ev img{width:100%;height:130px}
+.vwrap{position:relative}.vwrap #video{display:block}
+#banner{position:absolute;top:0;left:0;right:0;background:var(--red);color:#fff;padding:8px 12px;font-weight:600;border-radius:8px 8px 0 0}
+#face{position:absolute;left:10px;bottom:10px;width:150px;background:#ef4444dd;border-radius:8px;padding:6px;font-size:11px;color:#fff}
+#face img{width:100%;border-radius:4px;display:block;margin:4px 0}
+.vwrap.alert #video{outline:3px solid var(--red)}
+.mh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.pill{font-size:11px;padding:2px 8px;border-radius:99px;background:#1b2a47;color:var(--mut);font-weight:700}
+.pill.ALERT,.pill.SUSPICIOUS{background:#7f1d1d;color:#fecaca}.pill.WATCH{background:#78350f;color:#fde68a}.pill.NORMAL{background:#14532d;color:#bbf7d0}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.tiles div{background:#0e1626;border-radius:8px;padding:8px}.tiles b{font-size:20px;display:block}.tiles small{color:var(--mut)}
+.pp{background:#0e1626;border-radius:8px;padding:8px 10px;margin-bottom:6px;border-left:4px solid var(--grn)}
+.pp.WATCH{border-color:var(--org)}.pp.SUSPICIOUS,.pp.ALERT{border-color:var(--red)}
+.pp .t{display:flex;justify-content:space-between;align-items:center}.pp .sc{color:var(--mut);font-size:12px}
+.meter{height:4px;background:#22304d;border-radius:4px;margin-top:6px}.meter i{display:block;height:100%;border-radius:4px;background:var(--grn)}
+.pp.WATCH .meter i{background:var(--org)}.pp.SUSPICIOUS .meter i,.pp.ALERT .meter i{background:var(--red)}
+.pill.NO_POSE{background:#1b2a47;color:var(--mut)}.pp.NO_POSE{border-color:#334155}
+.faces{display:flex;gap:6px;flex-wrap:wrap}.faces img{width:56px;height:56px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid var(--red)}
+#face{cursor:pointer}#dimg.face{width:320px;max-width:100%;display:block;margin:auto}
+.lg{font-size:12px;padding:5px 0;border-bottom:1px solid var(--line)}.lg small{color:var(--mut);display:block}
+dialog{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:10px;max-width:900px;width:90%}
+dialog img{width:100%;border-radius:6px}dialog::backdrop{background:#000a}
+</style>
+</head>
+<body>
+<header><h1>🎥 Smart CCTV Console</h1>
+<nav><button data-t="live" class="on">Live</button><button data-t="search">Search</button><button data-t="history">Events</button></nav></header>
+<main>
+<div class="stats" id="stats"></div>
+
+<section class="tab on" id="live"><div class="grid live">
+ <div class="card"><div class="bar">
+  <select id="src"></select><input id="rtsp" placeholder="rtsp://user:pass@ip:554/stream1" type="password" hidden>
+  <select id="prof" title="Scene profile"></select><select id="cond" title="Test condition"></select>
+  <button class="b go" id="start">Start</button><button class="b stop" id="stop">Stop</button></div>
+  <div class="vwrap" id="vwrap"><div id="banner" hidden></div><img id="video" alt="live feed">
+   <div id="face" hidden><b>SUSPECT · ID <span id="fid"></span></b><img id="fimg" alt=""><small>Face snapshot</small></div></div>
+  <div id="status">Idle</div></div>
+ <div class="card"><div class="mh"><b>SECURITY MONITOR</b><span class="pill NORMAL" id="badge">NORMAL</span></div>
+  <div class="tiles"><div><b id="tp">0</b><small>People</small></div><div><b id="ta">0</b><small>Alerts</small></div><div><b id="ts">0</b><small>Suspicious</small></div></div>
+  <h3>People</h3><div id="people"></div><h3>Event log</h3><div id="log"></div>
+  <h3>Suspect snapshots</h3><div class="faces" id="faces"><small>None yet</small></div>
+  <h3>Alerts</h3><div class="feed" id="feed" style="max-height:220px"></div></div>
+</div></section>
+
+<section class="tab" id="search"><div class="card">
+ <div class="bar"><input id="q" placeholder='e.g. "weapon alerts yesterday", "loitering over 30 seconds"'><button class="b go" id="go">Search</button></div>
+ <div class="chips" id="examples"></div><div class="chips" id="filters"></div><div class="res" id="results"></div>
+</div></section>
+
+<section class="tab" id="history"><div class="card">
+ <div class="bar"><select id="ftype"><option value="">All types</option></select></div><div class="res" id="all"></div>
+</div></section>
+</main>
+<dialog id="dlg"><img id="dimg" alt=""><p id="dtxt"></p><button class="b" onclick="dlg.close()">Close</button></dialog>
+
+<script>
+const $=s=>document.querySelector(s);
+const j=(u,o)=>fetch(u,o).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw d.detail||r.statusText;return d});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const NAME={weapon_detected:'Weapon detected',restricted_area_intrusion:'Intrusion',loitering:'Loitering',possible_fall:'Possible fall',unattended_object:'Unattended object',suspicious_behavior:'Suspicious behaviour',prohibited_object:'Prohibited object',high_energy_interaction:'High-energy interaction'};
+const label=t=>NAME[t]||t;
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button,.tab').forEach(e=>e.classList.remove('on'));
+  b.classList.add('on');$('#'+b.dataset.t).classList.add('on');if(b.dataset.t==='history')loadAll();});
+
+function card(e){
+  const d=document.createElement('div');d.className='ev '+e.event_type;
+  d.innerHTML=`${e.evidence_url?`<img src="${esc(e.evidence_url)}" loading="lazy" alt="">`:'<img alt="">'}
+   <div><b>${esc(label(e.event_type))}</b><small>${esc(e.datetime_str)} · cam ${esc(e.camera_source)}<br>${e.track_id!=null?'track #'+e.track_id+' · ':''}conf ${(e.confidence??0).toFixed(2)}${e.duration_seconds?' · '+e.duration_seconds.toFixed(0)+'s':''}</small></div>`;
+  d.onclick=()=>{$('#dimg').className='';$('#dimg').src=e.evidence_url||'';$('#dtxt').textContent=`${label(e.event_type)} — ${e.datetime_str} — ${e.camera_source}`;$('#dlg').showModal()};
+  return d}
+
+async function loadStats(){
+  const s=await j('/api/stats');
+  $('#stats').innerHTML=`<div class="stat"><span>${s.total_events}</span><small>Total events</small></div>`+
+   Object.entries(s.by_type).map(([k,v])=>`<div class="stat"><span>${v}</span><small>${esc(label(k))}</small></div>`).join('');
+  const sel=$('#ftype');if(sel.options.length===1)Object.keys(s.by_type).forEach(k=>sel.add(new Option(label(k),k)));}
+
+// ---- live
+async function init(){
+  const s=await j('/api/sources');
+  $('#src').innerHTML=s.videos.map(v=>`<option value="file:${esc(v)}">${esc(v)}</option>`).join('')+'<option value="webcam">Webcam</option><option value="rtsp">RTSP camera…</option>';
+  $('#prof').innerHTML=s.profiles.map(c=>`<option>${c}</option>`).join('');
+  $('#cond').innerHTML=s.conditions.map(c=>`<option>${c}</option>`).join('');
+  $('#src').onchange=()=>$('#rtsp').hidden=$('#src').value!=='rtsp';
+  await loadStats();pollStatus();pollState();}
+$('#start').onclick=async()=>{
+  let source=$('#src').value;if(source==='rtsp')source=$('#rtsp').value.trim();
+  try{await j('/api/stream/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({source,condition:$('#cond').value,profile:$('#prof').value})});
+   $('#video').src='/api/stream/video?'+Date.now();}catch(e){setStatus('Error: '+e,true)}};
+$('#stop').onclick=async()=>{await j('/api/stream/stop',{method:'POST'});$('#video').removeAttribute('src');};
+function setStatus(t,err){const s=$('#status');s.textContent=t;s.className=err?'err':''}
+function openFace(url,txt){const i=$('#dimg');i.className='face';i.src=url;$('#dtxt').textContent=txt;$('#dlg').showModal()}
+$('#face').onclick=()=>openFace($('#fimg').src,'Suspect ID '+$('#fid').textContent);
+async function pollState(){
+  try{const s=await j('/api/stream/state');
+   if(s.stats){
+    $('#tp').textContent=s.stats.people;$('#ta').textContent=s.stats.alerts;$('#ts').textContent=s.stats.suspicious;
+    const bn=$('#banner');bn.hidden=!s.banner;bn.textContent=s.banner?'⚠ ALERT · '+s.banner:'';
+    $('#vwrap').classList.toggle('alert',!!s.banner);
+    const b=$('#badge');b.textContent=s.banner?'ALERT':'NORMAL';b.className='pill '+(s.banner?'ALERT':'NORMAL');
+    $('#people').innerHTML=s.people.map(p=>`<div class="pp ${p.status}"><div class="t"><b>ID ${p.id}</b><span class="pill ${p.status}">${p.status.replace('_',' ')}</span><span class="sc">${p.pose?p.score+'/'+p.max:'no pose · '+p.score+'/'+p.max}</span></div>${p.pose?`<div class="meter"><i style="width:${p.score/p.max*100}%"></i></div>`:''}</div>`).join('')||'<small>No people in view</small>';
+    $('#faces').innerHTML=s.faces.map(f=>`<img src="${esc(f.url)}" title="ID ${f.id} · ${f.ago}s ago" onclick="openFace('${esc(f.url)}','Suspect ID ${f.id} · ${f.ago}s ago')" alt="">`).join('')||'<small>None yet</small>';
+    $('#log').innerHTML=s.log.map(e=>`<div class="lg"><b>ID ${e.id} · ${esc(e.name)}</b> <span class="sc">${e.ago}s ago</span><small>${esc(e.text)}</small></div>`).join('')||'<small>No events yet</small>';
+    const f=$('#face');f.hidden=!s.suspect;if(s.suspect){$('#fid').textContent=s.suspect.id;$('#fimg').src=s.suspect.url}}
+  }catch{}
+  setTimeout(pollState,500)}
+async function pollStatus(){
+  try{const s=await j('/api/stream/status');
+   if(s.error)setStatus('Error: '+s.error,true);
+   else setStatus(s.running?`Running · ${s.source} · profile: ${s.profile} · condition: ${s.condition} · ${s.fps} FPS`:'Idle');}catch{}
+  setTimeout(pollStatus,1500)}
+const es=new EventSource('/api/alerts/stream');
+es.onmessage=m=>{const e=JSON.parse(m.data);$('#feed').prepend(card(e));loadStats()};
+
+// ---- search
+['suspicious behaviour today','weapon alerts yesterday','loitering for more than 30 seconds','falls in the last 24 hours','unattended bag today'].forEach(t=>{
+  const c=document.createElement('span');c.className='chip';c.textContent=t;c.onclick=()=>{$('#q').value=t;run()};$('#examples').append(c)});
+async function run(){
+  const q=$('#q').value.trim();if(!q)return;
+  try{const r=await j('/api/search?q='+encodeURIComponent(q));
+   $('#filters').innerHTML=Object.entries(r.filters).map(([k,v])=>`<span class="chip">${esc(k)}: ${esc(v)}</span>`).join('');
+   $('#results').replaceChildren(...r.results.map(card));
+   if(!r.results.length)$('#results').textContent='No matching events.';}catch(e){$('#results').textContent='Error: '+e}}
+$('#go').onclick=run;$('#q').onkeydown=e=>e.key==='Enter'&&run();
+
+// ---- history
+async function loadAll(){const t=$('#ftype').value;
+  const r=await j('/api/events?limit=200'+(t?'&type='+encodeURIComponent(t):''));$('#all').replaceChildren(...r.map(card))}
+$('#ftype').onchange=loadAll;
+init();
+</script>
+</body>
+</html>

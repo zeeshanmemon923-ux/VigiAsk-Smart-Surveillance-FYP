@@ -1,0 +1,5 @@
+
+# Web API + frontend
+fastapi>=0.110
+uvicorn>=0.29
+roboflow>=1.1.0   # dataset download for condition tests

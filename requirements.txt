@@ -1,0 +1,17 @@
+# Core CV / detection / tracking stack — Proposal Section 8 (Tools/Technology)
+ultralytics>=8.2.0        # YOLOv8 person detection
+opencv-python>=4.9.0      # video I/O, preprocessing, drawing
+numpy>=1.26.0
+torch>=2.2.0               # backend for YOLOv8 (installs CUDA build automatically if GPU present)
+torchvision>=0.17.0
+
+# Tracking
+# ultralytics ships ByteTrack config internally (model.track(..., tracker="bytetrack.yaml"))
+# deep-sort-realtime is only needed if you switch TrackingConfig.tracker to "deepsort"
+deep-sort-realtime>=1.3.2
+
+# Evaluation (precision/recall/F1 etc. — Objective 3)
+scikit-learn>=1.4.0
+pandas>=2.2.0
+matplotlib>=3.8.0
+huggingface_hub>=0.23.0
